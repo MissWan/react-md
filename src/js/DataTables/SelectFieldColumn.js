@@ -1,104 +1,121 @@
 import React, { PureComponent, PropTypes } from 'react';
 import cn from 'classnames';
-
 import TableColumn from './TableColumn';
 import SelectField from '../SelectFields/SelectField';
 
-// This is really half the time of the default menu transition. It seemed to be reasonable
-// enough
-const ABSOLUTE_DELAY = 100;
-
-const styles = {
-  absolute: { position: 'absolute' },
-};
-
-/**
- * The `SelectFieldColumns` is a simple wrapper for the `SelectField` and `TableColumn`
- * components. The only purpose of this Component is to allow the select field's menu
- * to extend past the data table's bounds.
- *
- * All props are just passed to the `SelectField` inside. To view all other undocumented
- * props here, view [Select Field Documentation](/components/select-fields#prop-types-select-field)
- */
 export default class SelectFieldColumn extends PureComponent {
   static propTypes = {
-    /**
-     * Boolean if the select field is open by default.
-     */
-    defaultOpen: PropTypes.bool.isRequired,
-
-    /**
-     * An optional function to call when the select field's menu open state
-     * is toggled.
-     */
-    onMenuToggle: PropTypes.func,
-
-    /**
-     * An optional style to apply to the column.
-     */
+    id: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
     style: PropTypes.object,
-
-    /**
-     * An optional className to apply to the column.
-     */
     className: PropTypes.string,
-
-    /**
-     * An optional style to apply to the select field's menu in the table column.
-     */
-    menuStyle: PropTypes.object,
-
-    /**
-     * An optional class name to apply to the select field's menu in the table column.
-     */
-    menuClassName: PropTypes.string,
+    wrapperStyle: PropTypes.object,
+    wrapperClassName: PropTypes.string,
+    header: PropTypes.bool,
+    children: PropTypes.node,
+    onMouseOver: PropTypes.func,
+    onMouseLeave: PropTypes.func,
+    onTouchStart: PropTypes.func,
+    onTouchEnd: PropTypes.func,
+    onKeyUp: PropTypes.func,
+    onKeyDown: PropTypes.func,
+    onMenuToggle: PropTypes.func,
+    position: SelectField.propTypes.position,
+    defaultOpen: PropTypes.bool,
   };
 
   static defaultProps = {
-    defaultOpen: false,
+    position: SelectField.Positions.BELOW,
   };
 
-  constructor(props) {
-    super(props);
+  static contextTypes = {
+    rowId: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
+  }
 
-    this.state = { absolute: props.defaultOpen };
+  constructor(props, context) {
+    super(props, context);
+
+    this.state = {
+      active: !!props.defaultOpen,
+      left: null,
+      width: null,
+    };
+
+    this._wrapper = null;
+    this._setWrapper = this._setWrapper.bind(this);
     this._handleMenuToggle = this._handleMenuToggle.bind(this);
   }
 
-  componentWillUnmount() {
-    if (this._timeout) {
-      clearTimeout(this._timeout);
-    }
+  _setWrapper(wrapper) {
+    this._wrapper = wrapper;
   }
 
-  _handleMenuToggle(open, event) {
+  _handleMenuToggle(active, e) {
     if (this.props.onMenuToggle) {
-      this.props.onMenuToggle(open, event);
+      this.props.onMenuToggle(active, e);
     }
 
-    this._timeout = setTimeout(() => {
-      this._timeout = null;
-      this.setState({ absolute: open });
-    }, ABSOLUTE_DELAY);
+    let width = null;
+    let left = null;
+    if (this._wrapper && active) {
+      left = this._wrapper.getBoundingClientRect().left;
+      width = this._wrapper.offsetWidth;
+    }
+
+    this.setState({ active, width, left });
   }
 
   render() {
-    const { absolute } = this.state;
-    const { style, className, menuStyle, menuClassName, ...props } = this.props;
-    delete props.header;
+    const { rowId } = this.context;
+    const { active, width, left } = this.state;
+    const {
+      style,
+      className,
+      wrapperStyle,
+      wrapperClassName,
+      header,
+      ...props
+    } = this.props;
+    delete props.id;
+    delete props.onMouseOver;
+    delete props.onMouseLeave;
+    delete props.onTouchStart;
+    delete props.onTouchEnd;
+
+    let { id } = this.props;
+    if (!id) {
+      id = `${rowId}-select`;
+    }
 
     return (
       <TableColumn
-        style={{ ...style, ...styles[`${absolute ? 'absolute' : 'noop'}`] }}
-        className={cn('prevent-grow', className)}
+        style={{ left, ...style }}
+        className={cn('prevent-grow md-select-field-column', {
+          'md-table-column--fixed md-table-column--fixed-active': active,
+        }, className)}
+        header={header}
+        onMouseOver={this._setActive}
+        onMouseLeave={this._setInactive}
+        onTouchStart={this._setActive}
+        onTouchEnd={this._setActive}
       >
-        <SelectField
-          {...props}
-          style={menuStyle}
-          className={menuClassName}
-          onMenuToggle={this._handleMenuToggle}
-          position={SelectField.Positions.BELOW}
-        />
+        <div
+          ref={this._setWrapper}
+          style={{ ...wrapperStyle, width }}
+          className={wrapperClassName}
+        >
+          <SelectField
+            id={id}
+            {...props}
+            onMenuToggle={this._handleMenuToggle}
+            fullWidth
+          />
+        </div>
       </TableColumn>
     );
   }

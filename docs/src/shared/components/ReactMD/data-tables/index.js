@@ -1,5 +1,8 @@
 import React from 'react';
 
+import SelectFieldColumnExample from './SelectFieldColumnExample';
+import SelectFieldColumnExampleRaw from '!!raw!./SelectFieldColumnExample';
+
 import PlainTableExample from './PlainTableExample';
 import PlainTableExampleRaw from '!!raw!./PlainTableExample';
 
@@ -20,6 +23,11 @@ import ControlledPagination from './ControlledPagination';
 import ControlledPaginationRaw from '!!raw!./ControlledPagination';
 
 export default [{
+  title: 'Select Field Column Example',
+  code: SelectFieldColumnExampleRaw,
+  children: <SelectFieldColumnExample />,
+  tableCard: true,
+}, {
   title: 'Plain Table Example',
   code: PlainTableExampleRaw,
   children: <PlainTableExample />,

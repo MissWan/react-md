@@ -48,6 +48,26 @@ export default class EditDialogColumn extends PureComponent {
     dialogClassName: PropTypes.string,
 
     /**
+     * An optional style to apply to the text field.
+     */
+    textFieldStyle: PropTypes.object,
+
+    /**
+     * An optional class name to apply to the text field.
+     */
+    textFieldClassName: PropTypes.string,
+
+    /**
+     * An optional style to apply to the text field's input.
+     */
+    inputStyle: PropTypes.object,
+
+    /**
+     * An optional class name to apply to the text field's input.
+     */
+    inputClassName: PropTypes.string,
+
+    /**
      * The transition duration when the dialog is moving from
      * active to inactive.
      */
@@ -68,7 +88,10 @@ export default class EditDialogColumn extends PureComponent {
      * will make the component controlled so you will need
      * to provide an `onChange` function.
      */
-    value: PropTypes.string,
+    value: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
 
     /**
      * An optional function to call when the text field's value
@@ -79,7 +102,10 @@ export default class EditDialogColumn extends PureComponent {
     /**
      * The default value for the column.
      */
-    defaultValue: PropTypes.string,
+    defaultValue: PropTypes.oneOfType([
+      PropTypes.number,
+      PropTypes.string,
+    ]),
 
     /**
      * An optional function to call when the input is clicked.
@@ -206,6 +232,11 @@ export default class EditDialogColumn extends PureComponent {
      * This is injected by the `TableRow` component.
      */
     header: PropTypes.bool,
+
+    /**
+     * The type for the text field.
+     */
+    type: TextField.propTypes.type,
   };
 
   static contextTypes = {
@@ -216,6 +247,7 @@ export default class EditDialogColumn extends PureComponent {
   };
 
   static defaultProps = {
+    type: 'text',
     defaultValue: '',
     transitionDuration: 300,
     okOnOutsideClick: true,
@@ -230,6 +262,8 @@ export default class EditDialogColumn extends PureComponent {
     this.state = {
       value: props.defaultValue,
       active: false,
+      absolute: false,
+      animating: false,
     };
 
     this._setColumn = this._setColumn.bind(this);
@@ -484,6 +518,10 @@ export default class EditDialogColumn extends PureComponent {
       className,
       dialogStyle,
       dialogClassName,
+      textFieldStyle,
+      textFieldClassName,
+      inputStyle,
+      inputClassName,
       maxLength,
       title,
       okLabel,
@@ -562,8 +600,8 @@ export default class EditDialogColumn extends PureComponent {
       <TableColumn
         style={style}
         className={cn('prevent-grow md-edit-dialog-column', {
-          'md-edit-dialog-column--animating': !inline && (absolute || active || animating),
-          'md-edit-dialog-column--active': active,
+          'md-table-column--fixed': !inline && (absolute || active || animating),
+          'md-table-column--fixed-active': active,
         }, className)}
         header={header}
         ref={this._setColumn}
@@ -593,8 +631,12 @@ export default class EditDialogColumn extends PureComponent {
             placeholder={active ? placeholder : placeholder || label}
             block={!active}
             paddedBlock={false}
-            className={pointer}
-            inputClassName={pointer}
+            style={textFieldStyle}
+            className={cn(pointer, textFieldClassName)}
+            inputStyle={inputStyle}
+            inputClassName={cn(pointer, {
+              'md-text-right': props.type === 'number',
+            }, inputClassName)}
             onKeyUp={this._handleKeyUp}
             onKeyDown={this._handleKeyDown}
             value={value}

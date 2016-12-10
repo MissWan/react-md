@@ -5,6 +5,7 @@ import TableBody from 'react-md/lib/DataTables/TableBody';
 import TableRow from 'react-md/lib/DataTables/TableRow';
 import TableColumn from 'react-md/lib/DataTables/TableColumn';
 import SelectFieldColumn from 'react-md/lib/DataTables/SelectFieldColumn';
+import EditDialogColumn from 'react-md/lib/DataTables/EditDialogColumn';
 
 import nutritionFacts from 'constants/nutritionFacts';
 
@@ -15,7 +16,7 @@ const DataTableExample = ({ onRowToggle }) => {
     <TableRow key={name}>
       <TableColumn>{name}</TableColumn>
       <SelectFieldColumn menuItems={types} defaultValue={type} id={name} />
-      <TableColumn numeric>{calories}</TableColumn>
+      <EditDialogColumn defaultValue={calories} type="number" />
       <TableColumn numeric>{fat}</TableColumn>
       <TableColumn numeric>{carbs}</TableColumn>
       <TableColumn numeric>{protein}</TableColumn>
